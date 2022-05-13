@@ -7,9 +7,10 @@ from api import views
 app_name = "api"
 
 router_v1 = SimpleRouter()
-router_v1.register("titles", TitleViewSet, basename="titles")
-router_v1.register("genres", GenreViewSet, basename="genres")
-router_v1.register("categories", CategoryViewSet, basename="categories")
+router_v1.register("users", views.UserViewSet, basename="users")
+router_v1.register("titles", views.TitleViewSet, basename="titles")
+router_v1.register("genres", views.GenreViewSet, basename="genres")
+router_v1.register("categories", views.CategoryViewSet, basename="categories")
 
 urlpatterns = [
     path("v1/", include(router_v1.urls)),
@@ -18,4 +19,5 @@ urlpatterns = [
         TokenObtainPairView.as_view(),
         name="token",
     ),
+    path("", include(router_v1.urls)),
 ]
