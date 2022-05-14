@@ -34,8 +34,8 @@ class Title(models.Model):
 class Review(models.Model):
     title = models.ForeignKey(
         Title,
-        null=True,
-        on_delete=models.SET_NULL,
+        null=False,
+        on_delete=models.CASCADE,
         related_name='reviews'
     )
     text = models.TextField()
@@ -44,7 +44,7 @@ class Review(models.Model):
         on_delete=models.CASCADE,
         related_name='reviews'
     )
-    score = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
+    score = models.IntegerField(validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
     pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     def __str__(self):
@@ -54,8 +54,8 @@ class Review(models.Model):
 class Comment(models.Model):
     review = models.ForeignKey(
         Review,
-        null=True,
-        on_delete=models.SET_NULL,
+        null=False,
+        on_delete=models.CASCADE,
         related_name='comments'
     )
     text = models.TextField()
