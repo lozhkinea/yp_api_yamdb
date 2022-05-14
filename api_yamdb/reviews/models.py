@@ -31,42 +31,37 @@ class Title(models.Model):
                f"year={self.year}")
 
 
-class Post(models.Model):
+class Review(models.Model):
+    title = models.ForeignKey(
+        Title,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='reviews'
+    )
     text = models.TextField()
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='posts'
+        related_name='reviews'
     )
-    image = models.ImageField(
-        upload_to='posts/',
-        null=True,
-        blank=True
-    )
-    group = models.ForeignKey(
-        Group,
-        on_delete=models.SET_NULL,
-        related_name='groups',
-        null=True,
-        blank=True
-    )
+    score = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(10.0)])
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     def __str__(self):
         return self.text
 
 
 class Comment(models.Model):
+    review = models.ForeignKey(
+        Review,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name='comments'
+    )
+    text = models.TextField()
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='comments'
     )
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    text = models.TextField()
-    created = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True)
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
