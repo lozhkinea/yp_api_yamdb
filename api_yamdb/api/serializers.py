@@ -15,8 +15,9 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class TokenSerializer(serializers.Serializer):
+class TokenSerializer(serializers.ModelSerializer):
     class Meta:
+        model = User
         fields = (
             "username",
             "confirmation_code",

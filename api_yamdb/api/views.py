@@ -1,3 +1,4 @@
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 from rest_framework import status, viewsets
@@ -46,4 +47,8 @@ def authtoken(request):
     serializer = serializers.TokenSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response(request.data, status=status.HTTP_200_OK)
+    user = serializer.instance
+    refresh = RefreshToken.for_user(user)
+    return Response(
+        {"token": str(refresh.access_token)}, status=status.HTTP_200_OK
+    )
