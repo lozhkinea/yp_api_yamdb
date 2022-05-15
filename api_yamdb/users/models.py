@@ -19,4 +19,3 @@ class User(AbstractUser):
     confirmation_code = models.CharField(
         _("confirmation code"), max_length=24, blank=True
     )
-    password = models.CharField(_("password"), max_length=128, blank=True)
