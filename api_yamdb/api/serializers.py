@@ -6,7 +6,7 @@ from django.db.models import Avg
 import datetime as dt
 
 from users.models import User
-from reviews.models import Title, Review
+from reviews.models import Title, Review, Category, Genre
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -22,8 +22,30 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Category
+        fields = (
+            "name",
+            "slug",
+        )
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Genre
+        fields = (
+            "name",
+            "slug",
+        )
+
+
 class TitleSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
     
     class Meta:
         model = Title
@@ -45,4 +67,8 @@ class TitleSerializer(serializers.ModelSerializer):
         if not value <= year:
             raise serializers.ValidationError('Проверьте год создания произведения!')
         return value 
+
+    def perform_create(self, serializer):
+        
+
 

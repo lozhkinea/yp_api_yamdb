@@ -3,10 +3,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets, mixins
 from rest_framework.pagination import LimitOffsetPagination
 
-from .serializers import UserSerializer, TitleSerializer
+from .serializers import UserSerializer, TitleSerializer, CategorySerializer, GenreSerializer
 from .permissions import IsAdminOrReadOnly
 from users.models import User
-from reviews.models import Title
+from reviews.models import Title, Category, Genre
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -28,3 +28,18 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save()
+
+
+class CreateListDeleteViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin,
+                        viewsets.GenericViewSet):
+    pass
+
+
+class CategoryViewSet(CreateListDeleteViewSet):
+    serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class GenreViewSet(CreateListDeleteViewSet):
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
