@@ -13,3 +13,11 @@ class UserSerializer(serializers.ModelSerializer):
             "bio",
             "role",
         )
+
+
+class TokenSerializer(serializers.Serializer):
+    class Meta:
+        fields = (
+            "username",
+            "confirmation_code",
+        )
