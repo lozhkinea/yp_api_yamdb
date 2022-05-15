@@ -2,13 +2,10 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-USER = "USR"
-MODERATOR = "MDR"
-ADMIN = "ADM"
 ROLE_CHOICES = [
-    (USER, "user"),
-    (MODERATOR, "moderator"),
-    (ADMIN, "admin"),
+    ("user", "user"),
+    ("moderator", "moderator"),
+    ("admin", "admin"),
 ]
 
 
