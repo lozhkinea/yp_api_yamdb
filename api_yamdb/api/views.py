@@ -19,14 +19,10 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     # какой сериализатор будет применён для валидации и сериализации
     serializer_class = TitleSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    # permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     # Фильтровать будем по следующим полям
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
-
-    # def perform_create(self, serializer):
-    #     genre
-    #     category
 
 
 class CreateListDeleteViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin,
@@ -40,6 +36,7 @@ class CategoryViewSet(CreateListDeleteViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = "slug"
 
 
 class GenreViewSet(CreateListDeleteViewSet):
@@ -48,3 +45,4 @@ class GenreViewSet(CreateListDeleteViewSet):
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = "slug"
