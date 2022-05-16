@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
+from rest_framework.relations import StringRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 from django.db.models import Avg
 
@@ -43,13 +43,15 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField(read_only=True)
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
+    description = serializers.StringRelatedField()
     
     class Meta:
         model = Title
         fields = (
+            "id",
             "name",
             "year",
             'rating',
@@ -67,8 +69,4 @@ class TitleSerializer(serializers.ModelSerializer):
         if not value <= year:
             raise serializers.ValidationError('Проверьте год создания произведения!')
         return value 
-
-    def perform_create(self, serializer):
-        
-
 

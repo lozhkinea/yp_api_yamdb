@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, viewsets, mixins
-from rest_framework.pagination import LimitOffsetPagination
+# from rest_framework.pagination import LimitOffsetPagination
 
 from .serializers import UserSerializer, TitleSerializer, CategorySerializer, GenreSerializer
 from .permissions import IsAdminOrReadOnly
@@ -21,13 +21,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    # pagination_class = LimitOffsetPagination
-    # ordering = ('pub_date',)
     # Фильтровать будем по следующим полям
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
 
-    def perform_create(self, serializer):
-        serializer.save()
+    # def perform_create(self, serializer):
+    #     genre
+    #     category
 
 
 class CreateListDeleteViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.DestroyModelMixin,
@@ -36,10 +35,16 @@ class CreateListDeleteViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mi
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
+    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
 
 
 class GenreViewSet(CreateListDeleteViewSet):
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
