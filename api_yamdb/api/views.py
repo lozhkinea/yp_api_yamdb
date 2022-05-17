@@ -19,7 +19,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     # какой сериализатор будет применён для валидации и сериализации
     serializer_class = TitleSerializer
-    # permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     # Фильтровать будем по следующим полям
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')

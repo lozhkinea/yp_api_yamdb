@@ -43,10 +43,18 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    rating = serializers.SerializerMethodField(read_only=True)
-    genre = GenreSerializer(many=True)
-    category = CategorySerializer()
-    # description = serializers.StringRelatedField()
+    rating = serializers.SerializerMethodField(required=False)
+    # genre = GenreSerializer(many=True)
+    # category = CategorySerializer()
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug'
+    )
     
     class Meta:
         model = Title
@@ -61,12 +69,34 @@ class TitleSerializer(serializers.ModelSerializer):
         )
 
     def get_rating(self, obj):
-        rating = round(obj.reviews.aggregate(Avg('score'))['score__avg'])
-        return rating
-
+        if type(obj.reviews.aggregate(Avg('score'))['score__avg']) == float:
+            rating = round(obj.reviews.aggregate(Avg('score'))['score__avg'])
+            return rating
+    
     def validate_year(self, value):
         year = dt.date.today().year
         if not value <= year:
             raise serializers.ValidationError('Проверьте год создания произведения!')
         return value 
 
+    # Переопределите это для поддержки сериализации для операций чтения
+    def to_representation(self, instance):
+        data = super(TitleSerializer, self).to_representation(instance)
+        return data
+    # def get_genre(self, obj):
+    #     genre=[]
+    #     slugs = self.obj.get('genre')
+    #     for slug in slugs:
+    #         genre.append(Genre.objects.get(slug=slug))
+    #     return genre
+    # def validate(self, data):
+    #     # получим список жанров
+    #     genre_list=[]
+    #     # из словаря запроса получим жанры по ключу genre
+    #     # возвращается str!!!!!
+    #     slugs = self.context['request'].data.get('genre')
+    #     for slug in slugs:
+    #         genre_list.append(Genre.objects.get(slug=slug))
+    #     # сохраним жанры в словарь
+    #     data['genre']=genre_list
+    #     return data
