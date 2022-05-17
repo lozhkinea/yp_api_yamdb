@@ -27,7 +27,7 @@ def signup(request):
     Регистрация нового пользователя {username}.
     Отправка кода подтверждения на {email}.
     """
-    serializer = serializers.UserSerializer(data=request.data)
+    serializer = serializers.UserSignupSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     user = serializer.save()
@@ -46,21 +46,25 @@ def token(request):
     {username} и {confirmation_code} на эндпоинт /api/v1/auth/token/,
     в ответе на запрос ему приходит token (JWT-токен).
     """
-    serializer = serializers.TokenSerializer(data=request.data)
+    serializer = serializers.UserTokenSerializer(data=request.data)
     if serializer.is_valid():
         return Response(
             {"username": "A user with that username not exists"},
             status=status.HTTP_404_NOT_FOUND,
         )
-    user = get_object_or_404(User, username=serializer.data["username"])
-    code = serializer.data["confirmation_code"]
-    if user.confirmation_code != code:
-        return Response(
-            {
-                "confirmation_code": f"Сonfirmation code {code} is invalid [{user.confirmation_code}]"
-            },
-            status=status.HTTP_404_NOT_FOUND,
-        )
+    if "username" not in serializer.data:
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if User.objects.filter(username=serializer.data["username"]).exists():
+        code = serializer.data["confirmation_code"]
+        user = User.objects.get(username=serializer.data["username"])
+        msg = f"Сonfirmation code {code} is invalid [{user.confirmation_code}]"
+        if user.confirmation_code != code:
+            return Response(
+                {
+                    "confirmation_code": msg,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
     refresh = RefreshToken.for_user(user)
     return Response(
         {"token": str(refresh.access_token)}, status=status.HTTP_200_OK
