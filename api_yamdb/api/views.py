@@ -1,3 +1,9 @@
+from django.shortcuts import get_object_or_404
+
+from rest_framework import filters, viewsets
+
+from api.serializers import UserSerializer, ReviewSerializer, CommentSerializer
+
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
@@ -5,6 +11,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from users.models import User
 
 from api import serializers
@@ -13,6 +20,39 @@ from api import serializers
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserSerializer
     queryset = User.objects.all()
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    # permission_classes = ()
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        serializer.save(author=self.request.user, title=title)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    # permission_classes = ()
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title=title_id)
+        return review.comments.all()
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title=title_id)
+        serializer.save(author=self.request.user, review=review)
+
     lookup_field = "username"
 
     @action(methods=["get", "patch"], detail=True)
