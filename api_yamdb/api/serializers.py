@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from users.models import User
-from reviews.models import Review, Comment
+from reviews.models import Comment, Review
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,6 +27,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
+        read_only_fields = ['title']
 
     def validate(self, data):
         request = self.context.get('request')
@@ -49,3 +50,4 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = '__all__'
+        read_only_fields = ['review']
