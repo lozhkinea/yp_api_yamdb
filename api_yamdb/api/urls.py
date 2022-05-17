@@ -1,6 +1,5 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 from api import views
 
@@ -14,11 +13,8 @@ router_v1.register("categories", views.CategoryViewSet, basename="categories")
 
 urlpatterns = [
     path("v1/", include(router_v1.urls)),
-    path(
-        "auth/token/",
-        TokenObtainPairView.as_view(),
-        name="token",
-    ),
+    path("v1/auth/signup/", views.signup, name="signup"),
+    path("v1/auth/token/", views.token, name="token"),
 ]
 
 
