@@ -1,6 +1,5 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
 from users.models import User
 
 
@@ -30,29 +29,28 @@ class Title(models.Model):
     )
 
     def __str__(self):
-        return (f"name={self.name[:15]}, "
-               f"year={self.year}")
+        return f"name={self.name[:15]}, " f"year={self.year}"
 
 
 class Review(models.Model):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name="reviews"
     )
     text = models.TextField()
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name="reviews"
     )
     score = models.IntegerField(
         validators=[
-            MinValueValidator(1, 'Оценка должна быть не ниже 1'),
-            MaxValueValidator(10, 'Оценка должна быть не выше 10')
+            MinValueValidator(1, "Оценка должна быть не ниже 1"),
+            MaxValueValidator(10, "Оценка должна быть не выше 10"),
         ]
     )
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
     def __str__(self):
         return self.text
@@ -60,14 +58,11 @@ class Review(models.Model):
 
 class Comment(models.Model):
     review = models.ForeignKey(
-        Review,
-        on_delete=models.CASCADE,
-        related_name='comments'
+        Review, on_delete=models.CASCADE, related_name="comments"
     )
     text = models.TextField()
     author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='comments'
+        User, on_delete=models.CASCADE,
+        related_name="comments"
     )
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
