@@ -52,6 +52,7 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['review']
 
+
 class UserSignupSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
