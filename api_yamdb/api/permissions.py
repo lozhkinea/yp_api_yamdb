@@ -4,44 +4,57 @@ Provides a set of pluggable permission policies.
 from rest_framework import permissions
 
 
-class IsAdminUser(permissions.BasePermission):
+class IsAdminOrAuthenticated(permissions.BasePermission):
     """
-    Allows access only to admin users.
+    Allows access to admin users,
+    or to authenticated users for the methods GET and PATCH.
     """
 
     def has_permission(self, request, view):
         return bool(
             request.user
             and request.user.is_authenticated
-            and request.user.role == "admin"
-        )
-
-
-class IsAuthorOrReadOnly(permissions.BasePermission):
-    """
-    Allows list to all, change only to author.
-    """
-
-    def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or request.user.is_authenticated
+            and (request.user.role in ["admin"] or request.user.is_superuser)
         )
 
     def has_object_permission(self, request, view, obj):
         return (
-            request.method in permissions.SAFE_METHODS
-            or obj.author == request.user
-        )
+            request.method in ["GET"] or request.method in ["PATCH"]
+        ) and request.obj == request.user
 
 
-class IsFollower(permissions.BasePermission):
+class IsAdminOrReadOnly(permissions.BasePermission):
     """
-    Allows access only to follower.
+    Allows access only to users with the role "admin",
+    or is a read-only request.
     """
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated
+        return bool(
+            request.method in permissions.SAFE_METHODS
+            or request.user
+            and request.user.is_authenticated
+            and (request.user.role in ["admin"] or request.user.is_superuser)
+        )
+
+
+class ReviewAndComment(permissions.BasePermission):
+    """
+    Allows create to authenticated users,
+    change to owners, moderators, administrators, superusers,
+    or is a read-only request.
+    """
+
+    def has_permission(self, request, view):
+        return bool(
+            request.method in permissions.SAFE_METHODS
+            or request.user
+            and request.user.is_authenticated
+        )
 
     def has_object_permission(self, request, view, obj):
-        return obj.user == request.user
+        return (
+            request.user.role in ["moderator", "admin"]
+            or request.user.is_superuser
+            or request.obj == request.user
+        )
