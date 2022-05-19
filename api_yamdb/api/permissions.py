@@ -3,11 +3,13 @@ Provides a set of pluggable permission policies.
 '''
 from rest_framework import permissions
 
+
 class IsAdminOrAuthenticated(permissions.BasePermission):
     '''
     Allows access to admin users,
     or to authenticated users for the methods GET and PATCH.
     '''
+
     def has_permission(self, request, view):
         return bool(
             request.user
