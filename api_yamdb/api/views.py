@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from reviews.models import Review, Title
