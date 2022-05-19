@@ -1,4 +1,7 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Comment, Review
 from users.models import User
 
@@ -51,6 +54,9 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150, validators=[])
+    email = serializers.EmailField(validators=[])
+
     class Meta:
         model = User
         fields = (
@@ -60,14 +66,65 @@ class UserSignupSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if data['username'] == 'me':
-            raise serializers.ValidationError('Cannot create user "me"')
+            raise serializers.ValidationError(
+                'Нельзя создать пользователя "me"!'
+            )
+        if (
+            User.objects.filter(email=data['email'])
+            .exclude(username=data['username'])
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                'Указанный email уже существует!'
+            )
+        if (
+            User.objects.filter(username=data['username'])
+            .exclude(email=data['email'])
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                'Указанный username уже существует!'
+            )
         return data
+
+    def create(self, validated_data):
+        user, created = User.objects.get_or_create(
+            username=validated_data['username'],
+            email=validated_data['email'],
+        )
+        user.is_active = not created or user.is_active
+        user.save()
+        code = default_token_generator.make_token(user)
+        subject = 'Код подтверждения регистрации на YaMDb'
+        message = f'Привет {user}, твой код подтверждения: {code}'
+        user.email_user(subject, message)
+        return user
 
 
 class UserTokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(max_length=150, validators=[])
+    token = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = (
-            'username',
-            'confirmation_code',
+        fields = ('username', 'confirmation_code', 'token')
+
+    def create(self, validated_data):
+        return get_object_or_404(
+            User,
+            username=validated_data['username'],
         )
+
+    def get_token(self, obj):
+        refresh = RefreshToken.for_user(obj)
+        return str(refresh.access_token)
+
+    def validate(self, data):
+        user = get_object_or_404(
+            User,
+            username=data['username'],
+        )
+        token = data['confirmation_code']
+        if default_token_generator.check_token(user, token):
+            return data
+        raise serializers.ValidationError('Некорректный confirmation_code!')
