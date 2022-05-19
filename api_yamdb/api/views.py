@@ -3,6 +3,7 @@ from django.core.mail import EmailMessage
 from django.shortcuts import get_object_or_404
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Review, Title
@@ -15,7 +16,8 @@ from api.serializers import CommentSerializer, ReviewSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserSerializer
-    permission_classes = IsAdminOrAuthenticated
+    permission_classes = (IsAdminOrAuthenticated,)
+    pagination_class = PageNumberPagination
     queryset = User.objects.all()
 
 
