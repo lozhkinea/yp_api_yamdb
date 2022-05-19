@@ -9,5 +9,5 @@ jobs:
       - uses: actions/checkout@v2
       - uses: psf/black@stable
         with:
-          options: "--line-length 79 --target-version py37 --skip-string-normalization  --check --extend-exclude migrations --verbose" 
+          options: "--check --verbose" 
           src: "./api_yamdb"
