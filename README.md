@@ -62,6 +62,7 @@ python manage.py runserver
 
 - Response sample:
 
+```bash
 [
   {
     "count": 0,
@@ -75,6 +76,7 @@ python manage.py runserver
     ]
   }
 ]
+```
 
 ### Request method: POST
 
@@ -82,13 +84,16 @@ python manage.py runserver
 
 - Request sample:
 
+```bash
 {
   "text": "string",
   "score": 1
 }
+```
 
 - Response sample:
 
+```bash
 {
   "id": 0,
   "text": "string",
@@ -96,6 +101,7 @@ python manage.py runserver
   "score": 1,
   "pub_date": "2019-08-24T14:15:22Z"
 }
+```
 
 ### Request method: PATCH
 
@@ -103,6 +109,7 @@ python manage.py runserver
 
 - Request sample:
 
+```bash
 {
   "username": "string",
   "email": "user@example.com",
@@ -111,9 +118,11 @@ python manage.py runserver
   "bio": "string",
   "role": "user"
 }
+```
 
 - Response sample:
 
+```bash
 {
   "username": "string",
   "email": "user@example.com",
@@ -122,6 +131,7 @@ python manage.py runserver
   "bio": "string",
   "role": "user"
 }
+```
 
 ## The authors:
 
