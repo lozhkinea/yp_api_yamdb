@@ -9,12 +9,13 @@ from reviews.models import Review, Title
 from users.models import User
 
 from api import serializers
-from api.permissions import ReviewAndComment
+from api.permissions import IsAdminOrAuthenticated, ReviewAndComment
 from api.serializers import CommentSerializer, ReviewSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.UserSerializer
+    permission_classes = IsAdminOrAuthenticated
     queryset = User.objects.all()
 
 
