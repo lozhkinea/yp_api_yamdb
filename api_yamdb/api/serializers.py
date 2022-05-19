@@ -64,17 +64,19 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class Slug2DictGenre(serializers.Field):
     # При чтении
+    # аргумент self замещается экземпляром объекта Genre
     def to_representation(self, value):
+       # data=[]
+        # genres_count=Genre.objects.all().count()
+        # for i in range(0,genres_count):
+        #     # genre = Genre.objects.all()[i]
+        #     data.append(get_object_or_404(Genre, id=i))
+        #     # data.append(super(GenreSerializer, get_object_or_404(Genre, id=i)).to_representation(value))
+        # return data
         return value
     # При записи (в запросе "genre": ["string"])
     def to_internal_value(self, data):
         genre_list=[{slug: get_object_or_404(Genre, slug=slug).name} for slug in data]
-        # genre={}
-        # genre_list=[]
-        # for i in data:
-        #     name = get_object_or_404(Genre, slug=i).name
-        #     genre = {'name':name, 'slug':i}
-        #     genre_list.append(genre)
         return genre_list
 
 
@@ -89,13 +91,12 @@ class Slug2DictCategory(serializers.Field):
         return category
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleListSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField(required=False)
-    genre = Slug2DictGenre()
-    category = Slug2DictCategory()
-    rating = serializers.SerializerMethodField(required=False)
-    # genre = GenreSerializer(many=True)
-    # category = CategorySerializer()
+    # genre = Slug2DictGenre()
+    # category = Slug2DictCategory()
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
     # genre = serializers.SlugRelatedField(
     #     queryset=Genre.objects.all(), slug_field="slug", many=True
     # )
@@ -121,6 +122,47 @@ class TitleSerializer(serializers.ModelSerializer):
             rating = round(obj.reviews.aggregate(Avg("score"))["score__avg"])
             return rating
 
+    # def validate_year(self, value):
+    #     year = dt.date.today().year
+    #     if not value <= year:
+    #         raise serializers.ValidationError(
+    #             "Проверьте год создания произведения!"
+    #         )
+    #     return value
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    # rating = serializers.SerializerMethodField(required=False)
+    # genre = Slug2DictGenre()
+    # category = Slug2DictCategory()
+    # rating = serializers.SerializerMethodField(required=False)
+    # genre = GenreSerializer(many=True)
+    # category = CategorySerializer()
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field="slug", many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field="slug"
+    )
+
+    class Meta:
+        model = Title
+        fields = (
+            "id",
+            "name",
+            "year",
+            # "rating",
+            "description",
+            "genre",
+            "category",
+        )
+
+    
+    # def get_rating(self, obj):
+    #     if type(obj.reviews.aggregate(Avg('score'))['score__avg']) == float:
+    #         rating = round(obj.reviews.aggregate(Avg("score"))["score__avg"])
+    #         return rating
+
     def validate_year(self, value):
         year = dt.date.today().year
         if not value <= year:
@@ -128,13 +170,3 @@ class TitleSerializer(serializers.ModelSerializer):
                 "Проверьте год создания произведения!"
             )
         return value
-
-    # Переопределите это для поддержки сериализации для операций чтения
-    # instance - набор записей для сериализации
-    # у каждого поля сериалайзера есть собственный метод to_representation.
-    # Задача метода — представить извлечённые из записи данные в определённом виде
-    # def to_representation(self, instance):
-    #     representation = super().to_representation(instance)
-    #     representation['genre'] = GenreSerializer(many=True)
-    #     representation['category'] = CategorySerializer()
-    #     return representation

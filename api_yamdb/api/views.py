@@ -10,7 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from users.models import User
 from .permissions import IsAdminOrReadOnly
 from reviews.models import Category, Genre, Title
-from api import serializers
+from api import serializers, filter
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -79,13 +79,21 @@ class TitleViewSet(viewsets.ModelViewSet):
     # выборка объектов модели
     queryset = Title.objects.all()
     # какой сериализатор будет применён для валидации и сериализации
-    serializer_class = serializers.TitleSerializer
+    serializer_class = serializers.TitleListSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     # Фильтровать будем по следующим полям
-    filterset_fields = ("category__slug", "genre__slug", "name", "year")
-
-
+    # filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    filter_fields = ('genre')
+    filter_class = filter.TitleFilter
+    
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return serializers.TitleListSerializer
+        else:
+            return serializers.TitleSerializer
+        
+               
 class CreateListDeleteViewSet(
     mixins.CreateModelMixin,
     mixins.ListModelMixin,
