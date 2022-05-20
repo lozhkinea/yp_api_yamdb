@@ -1,8 +1,11 @@
+import datetime as dt
+
 from django.contrib.auth.tokens import default_token_generator
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Comment, Review
+from reviews.models import Comment, Review, Category, Genre, Title
 from users.models import User
 
 
@@ -128,3 +131,72 @@ class UserTokenSerializer(serializers.ModelSerializer):
         if default_token_generator.check_token(user, token):
             return data
         raise serializers.ValidationError('Некорректный confirmation_code!')
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = (
+            'name',
+            'slug',
+        )
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
+        fields = (
+            'name',
+            'slug',
+        )
+
+
+class TitleListSerializer(serializers.ModelSerializer):
+    rating = serializers.SerializerMethodField(required=False)
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+
+    class Meta:
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category',
+        )
+
+    def get_rating(self, obj):
+        if type(obj.reviews.aggregate(Avg('score'))['score__avg']) == float:
+            rating = round(obj.reviews.aggregate(Avg('score'))['score__avg'])
+            return rating
+
+
+class TitleSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(), slug_field='slug', many=True
+    )
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug'
+    )
+
+    class Meta:
+        model = Title
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'genre',
+            'category',
+        )
+
+    def validate_year(self, value):
+        year = dt.date.today().year
+        if not value <= year:
+            raise serializers.ValidationError(
+                'Проверьте год создания произведения!'
+            )
+        return value

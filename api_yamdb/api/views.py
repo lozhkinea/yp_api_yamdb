@@ -1,13 +1,23 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from rest_framework import permissions, status, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status, viewsets, filters, mixins
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
-from reviews.models import Review, Title
+from reviews.models import Review, Title, Category, Genre
 from users.models import User
 
-from api.permissions import IsAdminOrAuthenticated, ReviewAndComment
+from api import filter
+from api.permissions import (
+    IsAdminOrAuthenticated,
+    ReviewAndComment,
+    IsAdminOrReadOnly,
+)
 from api.serializers import (
+    TitleListSerializer,
+    TitleSerializer,
+    CategorySerializer,
+    GenreSerializer,
     CommentSerializer,
     ReviewSerializer,
     UserSerializer,
@@ -21,6 +31,47 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrAuthenticated]
     queryset = User.objects.all()
     lookup_field = 'username'
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleListSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = filter.TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleListSerializer
+        else:
+            return TitleSerializer
+
+
+class CreateListDeleteViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    pass
+
+
+class CategoryViewSet(CreateListDeleteViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+
+class GenreViewSet(CreateListDeleteViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
