@@ -132,7 +132,7 @@ class UserTokenSerializer(serializers.ModelSerializer):
             return data
         raise serializers.ValidationError('Некорректный confirmation_code!')
 
-        
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
