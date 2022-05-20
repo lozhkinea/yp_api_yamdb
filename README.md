@@ -14,43 +14,43 @@ YaMDb project collects user feedback on the composition (books, movies, music)
 
 Clone the repository and go to it on the command line:
 
-```bash
+```python
 git clone ...
 ```
 
-```bash
+```python
 cd api_yamdb
 ```
 
 Create and activate a virtual environment:
 
-```bash
+```python
 python -m venv venv
 ```
 
-```bash
+```python
 source venv/bin/activate
 ```
 
 Install dependencies from a file requirements.txt:
 
-```bash
+```python
 python -m pip install --upgrade pip
 ```
 
-```bash
+```python
 pip install -r requirements.txt
 ```
 
 Perform migrations:
 
-```bash
+```python
 python manage.py migrate
 ```
 
 Launch a project:
 
-```bash
+```python
 python manage.py runserver
 ```
 
@@ -62,7 +62,7 @@ python manage.py runserver
 
 - Response sample:
 
-```bash
+```python
 [
   {
     "count": 0,
@@ -84,7 +84,7 @@ python manage.py runserver
 
 - Request sample:
 
-```bash
+```python
 {
   "text": "string",
   "score": 1
@@ -93,7 +93,7 @@ python manage.py runserver
 
 - Response sample:
 
-```bash
+```python
 {
   "id": 0,
   "text": "string",
@@ -109,7 +109,7 @@ python manage.py runserver
 
 - Request sample:
 
-```bash
+```python
 {
   "username": "string",
   "email": "user@example.com",
@@ -122,7 +122,7 @@ python manage.py runserver
 
 - Response sample:
 
-```bash
+```python
 {
   "username": "string",
   "email": "user@example.com",
