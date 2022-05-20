@@ -19,8 +19,11 @@ class IsAdminOrAuthenticated(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return (
-            request.method in ['GET'] or request.method in ['PATCH']
-        ) and request.obj == request.user
+            request.method in ['PATCH']
+            and obj == request.user
+            or request.user.role in ['admin']
+            or request.user.is_superuser
+        )
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -56,5 +59,5 @@ class ReviewAndComment(permissions.BasePermission):
         return (
             request.user.role in ['moderator', 'admin']
             or request.user.is_superuser
-            or request.obj == request.user
+            or obj.author == request.user
         )
