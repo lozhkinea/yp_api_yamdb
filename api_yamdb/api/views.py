@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets, filters, mixins
+from rest_framework import permissions, status, viewsets, filters, mixins
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from reviews.models import Review, Title, Category, Genre
