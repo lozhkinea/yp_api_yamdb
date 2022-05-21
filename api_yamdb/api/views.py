@@ -1,25 +1,26 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status, viewsets, filters, mixins
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
-from reviews.models import Review, Title, Category, Genre
+from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
 from api import filter
 from api.permissions import (
     IsAdminOrAuthenticated,
-    ReviewAndComment,
     IsAdminOrReadOnly,
+    ReviewAndComment,
 )
 from api.serializers import (
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
     TitleListSerializer,
     TitleSerializer,
-    CategorySerializer,
-    GenreSerializer,
-    CommentSerializer,
-    ReviewSerializer,
     UserSerializer,
     UserSignupSerializer,
     UserTokenSerializer,
@@ -31,6 +32,26 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrAuthenticated]
     queryset = User.objects.all()
     lookup_field = 'username'
+
+    @action(methods=['get', 'patch'], detail=False)
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        if request.GET:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def perform_update(self, serializer):
+        if (
+            self.request.user.role in ['user']
+            and 'role' in serializer.validated_data
+        ):
+            serializer.validated_data.pop('role')
+        serializer.save()
 
 
 class TitleViewSet(viewsets.ModelViewSet):
