@@ -2,49 +2,34 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, viewsets, filters, mixins
+from rest_framework import permissions as rest_permission
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from reviews.models import Review, Title, Category, Genre
 from users.models import User
 
-from api import filter
-from api.permissions import (
-    IsAdminOrAuthenticated,
-    ReviewAndComment,
-    IsAdminOrReadOnly,
-)
-from api.serializers import (
-    TitleListSerializer,
-    TitleSerializer,
-    CategorySerializer,
-    GenreSerializer,
-    CommentSerializer,
-    ReviewSerializer,
-    UserSerializer,
-    UserSignupSerializer,
-    UserTokenSerializer,
-)
+from api import filter, permissions, serializers
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    serializer_class = UserSerializer
-    permission_classes = [IsAdminOrAuthenticated]
+    serializer_class = serializers.UserSerializer
+    permission_classes = [permissions.IsAdminOrAuthenticated]
     queryset = User.objects.all()
     lookup_field = 'username'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleListSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    serializer_class = serializers.TitleListSerializer
+    permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
-    filter_class = filter.TitleFilter
+    filterset_class = filter.TitleFilter
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
-            return TitleListSerializer
+            return serializers.TitleListSerializer
         else:
-            return TitleSerializer
+            return serializers.TitleSerializer
 
 
 class CreateListDeleteViewSet(
@@ -58,8 +43,8 @@ class CreateListDeleteViewSet(
 
 class CategoryViewSet(CreateListDeleteViewSet):
     queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    serializer_class = serializers.CategorySerializer
+    permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -67,18 +52,18 @@ class CategoryViewSet(CreateListDeleteViewSet):
 
 class GenreViewSet(CreateListDeleteViewSet):
     queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    serializer_class = serializers.GenreSerializer
+    permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
-    serializer_class = ReviewSerializer
+    serializer_class = serializers.ReviewSerializer
     permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-        ReviewAndComment,
+        rest_permission.IsAuthenticatedOrReadOnly,
+        permissions.ReviewAndComment,
     )
 
     def get_queryset(self):
@@ -93,10 +78,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-    serializer_class = CommentSerializer
+    serializer_class = serializers.CommentSerializer
     permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-        ReviewAndComment,
+        rest_permission.IsAuthenticatedOrReadOnly,
+        permissions.ReviewAndComment,
     )
 
     def get_queryset(self):
@@ -114,8 +99,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class UserSignupView(CreateAPIView):
     model = get_user_model()
-    permission_classes = [permissions.AllowAny]
-    serializer_class = UserSignupSerializer
+    permission_classes = [rest_permission.AllowAny]
+    serializer_class = serializers.UserSignupSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -129,5 +114,5 @@ class UserSignupView(CreateAPIView):
 
 class UserTokenView(CreateAPIView):
     model = get_user_model()
-    permission_classes = [permissions.AllowAny]
-    serializer_class = UserTokenSerializer
+    permission_classes = [rest_permission.AllowAny]
+    serializer_class = serializers.UserTokenSerializer
