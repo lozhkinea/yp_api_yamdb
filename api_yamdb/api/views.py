@@ -31,8 +31,10 @@ from api.serializers import (
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAdminOrAuthenticated]
-    queryset = User.objects.all()
     lookup_field = 'username'
+
+    def get_queryset(self):
+        return User.objects.order_by('id')
 
     @action(methods=['get', 'patch'], detail=False)
     def me(self, request):

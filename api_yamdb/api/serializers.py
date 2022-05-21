@@ -56,12 +56,11 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ['review']
 
 
-class UserSignupSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150, validators=[])
-    email = serializers.EmailField(validators=[])
+class UserSignupSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
 
     class Meta:
-        model = User
         fields = (
             'username',
             'email',
@@ -95,8 +94,9 @@ class UserSignupSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data['email'],
         )
-        user.is_active = not created or user.is_active
-        user.save()
+        if created:
+            user.is_active = False
+            user.save()
         code = default_token_generator.make_token(user)
         subject = 'Код подтверждения регистрации на YaMDb'
         message = f'Привет {user}, твой код подтверждения: {code}'
@@ -104,12 +104,12 @@ class UserSignupSerializer(serializers.ModelSerializer):
         return user
 
 
-class UserTokenSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(max_length=150, validators=[])
-    token = serializers.SerializerMethodField()
+class UserTokenSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150, write_only=True)
+    token = serializers.SerializerMethodField(read_only=True)
+    confirmation_code = serializers.CharField(max_length=24, write_only=True)
 
     class Meta:
-        model = User
         fields = ('username', 'confirmation_code', 'token')
 
     def create(self, validated_data):
@@ -128,9 +128,11 @@ class UserTokenSerializer(serializers.ModelSerializer):
             username=data['username'],
         )
         token = data['confirmation_code']
-        if default_token_generator.check_token(user, token):
-            return data
-        raise serializers.ValidationError('Некорректный confirmation_code!')
+        if not default_token_generator.check_token(user, token):
+            raise serializers.ValidationError(
+                'Некорректный confirmation_code!'
+            )
+        return data
 
 
 class CategorySerializer(serializers.ModelSerializer):
