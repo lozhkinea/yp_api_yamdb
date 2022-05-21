@@ -115,7 +115,7 @@ class UserTokenSerializer(serializers.Serializer):
     def create(self, validated_data):
         user = get_object_or_404(User, username=validated_data['username'])
         if not user.is_active:
-            user.is_active = False
+            user.is_active = True
             user.save()
         return user
 
