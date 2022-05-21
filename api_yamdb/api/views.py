@@ -13,6 +13,8 @@ from api import filter, permissions, serializers
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
     serializer_class = serializers.UserSerializer
     permission_classes = (permissions.IsAdminOrAuthenticated,)
     lookup_field = 'username'
