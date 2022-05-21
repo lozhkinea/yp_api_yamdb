@@ -6,10 +6,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Comment, Review, Category, Genre, Title
-from users.models import User
+from users.models import User, ROLE_CHOICES
 
 
 class UserSerializer(serializers.ModelSerializer):
+    # role = serializers.ChoiceField(ROLE_CHOICES, read_only=True)
+
     class Meta:
         model = User
         fields = (

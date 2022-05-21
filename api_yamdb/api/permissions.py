@@ -14,13 +14,23 @@ class IsAdminOrAuthenticated(permissions.BasePermission):
         return bool(
             request.user
             and request.user.is_authenticated
-            and (request.user.role in ['admin'] or request.user.is_superuser)
+            and (
+                request.user.role in ['admin']
+                or request.user.is_superuser
+                # костыль
+                or request.path == '/api/v1/users/me/'
+            )
         )
 
     def has_object_permission(self, request, view, obj):
         return (
-            request.method in ['PATCH']
-            and obj == request.user
+            request.method in ['GET', 'PATCH']
+            and (
+                obj == request.user
+                or request.user.role in ['admin']
+                or request.user.is_superuser
+            )
+            and request.method in ['PATCH']
             or request.user.role in ['admin']
             or request.user.is_superuser
         )
