@@ -169,12 +169,14 @@ class TitleListSerializer(serializers.ModelSerializer):
         )
 
     def get_rating(self, obj):
-        if type(obj.reviews.aggregate(Avg('score'))['score__avg']) == float:
-            rating = round(obj.reviews.aggregate(Avg('score'))['score__avg'])
+        rating_agv = obj.reviews.aggregate(Avg('score'))['score__avg']
+        if isinstance(rating_agv, float):
+            rating = round(rating_agv)
             return rating
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    rating = serializers.SerializerMethodField(required=False)
     genre = serializers.SlugRelatedField(
         queryset=Genre.objects.all(), slug_field='slug', many=True
     )
@@ -188,10 +190,17 @@ class TitleSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'year',
+            'rating',
             'description',
             'genre',
             'category',
         )
+
+    def get_rating(self, obj):
+        rating_agv = obj.reviews.aggregate(Avg('score'))['score__avg']
+        if isinstance(rating_agv, float):
+            rating = round(rating_agv)
+            return rating
 
     def validate_year(self, value):
         year = dt.date.today().year
