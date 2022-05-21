@@ -1,5 +1,4 @@
 from django.contrib.auth import get_user_model
-from django.forms import ValidationError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
@@ -43,10 +42,16 @@ class UserViewSet(viewsets.ModelViewSet):
             request.user, data=request.data, partial=True
         )
         serializer.is_valid(raise_exception=True)
-        if serializer.validated_data.get('role'):
-            return ValidationError('Нельзя менять роль себе')
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def perform_update(self, serializer):
+        if (
+            self.request.user.role in ['user']
+            and 'role' in serializer.validated_data
+        ):
+            serializer.validated_data.pop('role')
+        serializer.save()
 
 
 class TitleViewSet(viewsets.ModelViewSet):

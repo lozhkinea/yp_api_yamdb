@@ -5,12 +5,11 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
-from reviews.models import Comment, Review, Category, Genre, Title
-from users.models import User, ROLE_CHOICES
+from reviews.models import Category, Comment, Genre, Review, Title
+from users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    # role = serializers.ChoiceField(ROLE_CHOICES, read_only=True)
 
     class Meta:
         model = User
