@@ -51,6 +51,12 @@ class Review(models.Model):
     class Meta:
         ordering = ['id']
         verbose_name = 'Отзыв'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('author', 'title',),
+                name='constraints_review'
+            )
+        ]
 
     def __str__(self):
         return self.text[:15]
