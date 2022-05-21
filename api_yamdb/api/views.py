@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins
-from rest_framework import permissions as rest_permission
+from rest_framework import permissions as rest_permissions
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
@@ -92,7 +91,7 @@ class GenreViewSet(CreateListDeleteViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReviewSerializer
     permission_classes = (
-        rest_permission.IsAuthenticatedOrReadOnly,
+        rest_permissions.IsAuthenticatedOrReadOnly,
         permissions.ReviewAndComment,
     )
 
@@ -110,7 +109,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CommentSerializer
     permission_classes = (
-        rest_permission.IsAuthenticatedOrReadOnly,
+        rest_permissions.IsAuthenticatedOrReadOnly,
         permissions.ReviewAndComment,
     )
 
@@ -128,8 +127,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 
 class UserSignupView(CreateAPIView):
-    model = get_user_model()
-    permission_classes = [rest_permission.AllowAny]
+    model = User
+    permission_classes = [rest_permissions.AllowAny]
     serializer_class = serializers.UserSignupSerializer
 
     def create(self, request, *args, **kwargs):
@@ -143,6 +142,6 @@ class UserSignupView(CreateAPIView):
 
 
 class UserTokenView(CreateAPIView):
-    model = get_user_model()
-    permission_classes = [rest_permission.AllowAny]
+    model = User
+    permission_classes = [rest_permissions.AllowAny]
     serializer_class = serializers.UserTokenSerializer

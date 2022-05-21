@@ -113,10 +113,11 @@ class UserTokenSerializer(serializers.Serializer):
         fields = ('username', 'confirmation_code', 'token')
 
     def create(self, validated_data):
-        return get_object_or_404(
-            User,
-            username=validated_data['username'],
-        )
+        user = get_object_or_404(User, username=validated_data['username'])
+        if not user.is_active:
+            user.is_active = False
+            user.save()
+        return user
 
     def get_token(self, obj):
         refresh = RefreshToken.for_user(obj)
