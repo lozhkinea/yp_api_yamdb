@@ -19,7 +19,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
     serializer_class = serializers.TitleListSerializer
     permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
@@ -30,6 +29,9 @@ class TitleViewSet(viewsets.ModelViewSet):
             return serializers.TitleListSerializer
         else:
             return serializers.TitleSerializer
+
+    def get_queryset(self):
+        return Title.objects.order_by('id')
 
 
 class CreateListDeleteViewSet(
@@ -42,21 +44,25 @@ class CreateListDeleteViewSet(
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
-    queryset = Category.objects.all()
     serializer_class = serializers.CategorySerializer
     permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
+    def get_queryset(self):
+        return Category.objects.order_by('name')
+
 
 class GenreViewSet(CreateListDeleteViewSet):
-    queryset = Genre.objects.all()
     serializer_class = serializers.GenreSerializer
     permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        return Genre.objects.order_by('name')
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
