@@ -23,7 +23,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    title = serializers.PrimaryKeyRelatedField(read_only=True)
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
@@ -37,7 +36,6 @@ class ReviewSerializer(serializers.ModelSerializer):
             'score',
             'pub_date',
         )
-        read_only_fields = ['title']
 
     def validate(self, data):
         request = self.context.get('request')
@@ -64,7 +62,6 @@ class CommentSerializer(serializers.ModelSerializer):
             'author',
             'pub_date',
         )
-        read_only_fields = ['review']
 
 
 class UserSignupSerializer(serializers.ModelSerializer):
