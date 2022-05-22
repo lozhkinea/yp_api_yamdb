@@ -12,6 +12,27 @@ from users.models import User
 from api import filter, permissions, serializers
 
 
+class UserSignupView(CreateAPIView):
+    model = User
+    permission_classes = [rest_permissions.AllowAny]
+    serializer_class = serializers.UserSignupSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_200_OK, headers=headers
+        )
+
+
+class UserTokenView(CreateAPIView):
+    model = User
+    permission_classes = [rest_permissions.AllowAny]
+    serializer_class = serializers.UserTokenSerializer
+
+
 class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
@@ -41,6 +62,37 @@ class UserViewSet(viewsets.ModelViewSet):
         ):
             serializer.validated_data.pop('role')
         serializer.save()
+
+
+class CreateListDeleteViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    pass
+
+
+class CategoryViewSet(CreateListDeleteViewSet):
+    serializer_class = serializers.CategorySerializer
+    permission_classes = (permissions.IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        return Category.objects.order_by('name')
+
+
+class GenreViewSet(CreateListDeleteViewSet):
+    serializer_class = serializers.GenreSerializer
+    permission_classes = (permissions.IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        return Genre.objects.order_by('name')
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -77,43 +129,9 @@ class TitleViewSet(viewsets.ModelViewSet):
         return Response(updated_serializer.data)
 
 
-class CreateListDeleteViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet,
-):
-    pass
-
-
-class CategoryViewSet(CreateListDeleteViewSet):
-    serializer_class = serializers.CategorySerializer
-    permission_classes = (permissions.IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
-
-    def get_queryset(self):
-        return Category.objects.order_by('name')
-
-
-class GenreViewSet(CreateListDeleteViewSet):
-    serializer_class = serializers.GenreSerializer
-    permission_classes = (permissions.IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
-
-    def get_queryset(self):
-        return Genre.objects.order_by('name')
-
-
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ReviewSerializer
-    permission_classes = (
-        rest_permissions.IsAuthenticatedOrReadOnly,
-        permissions.ReviewAndComment,
-    )
+    permission_classes = (permissions.ReviewAndComment,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -128,10 +146,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CommentSerializer
-    permission_classes = (
-        rest_permissions.IsAuthenticatedOrReadOnly,
-        permissions.ReviewAndComment,
-    )
+    permission_classes = (permissions.ReviewAndComment,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
@@ -144,24 +159,3 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title_id)
         serializer.save(author=self.request.user, review=review)
-
-
-class UserSignupView(CreateAPIView):
-    model = User
-    permission_classes = [rest_permissions.AllowAny]
-    serializer_class = serializers.UserSignupSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data, status=status.HTTP_200_OK, headers=headers
-        )
-
-
-class UserTokenView(CreateAPIView):
-    model = User
-    permission_classes = [rest_permissions.AllowAny]
-    serializer_class = serializers.UserTokenSerializer
