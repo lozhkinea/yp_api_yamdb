@@ -58,6 +58,24 @@ class TitleViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Title.objects.order_by('id')
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        create_data = serializer.save()
+        create_serializer = serializers.TitleListSerializer(create_data)
+        return Response(create_serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        updated_instance = serializer.save()
+        updated_serializer = serializers.TitleListSerializer(updated_instance)
+        return Response(updated_serializer.data)
+
 
 class CreateListDeleteViewSet(
     mixins.CreateModelMixin,
