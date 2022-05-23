@@ -1,6 +1,6 @@
-"""
+'''
 Скрипт для загрузки данных из CSV-файлов.
-"""
+'''
 from csv import DictReader
 
 from django.core.management.base import BaseCommand

@@ -4,36 +4,29 @@ Provides a set of pluggable permission policies.
 from rest_framework import permissions
 
 
-class IsAdminOrAuthenticated(permissions.BasePermission):
+class IsAdmin(permissions.BasePermission):
     '''
-    Allows access to admin users,
-    or to authenticated users for the methods GET and PATCH.
+    Allows access to admin users.
     '''
 
     def has_permission(self, request, view):
-        return bool(
+        return (
             request.user
             and request.user.is_authenticated
-            and (
-                request.user.role in ['admin']
-                or request.user.is_superuser
-                # костыль
-                or request.path == '/api/v1/users/me/'
-            )
+            and request.user.is_admin
         )
 
+
+class IsSelf(permissions.BasePermission):
+    '''
+    Allow to access their account.
+    '''
+
+    def has_permission(self, request, view):
+        return request.user and request.user.is_authenticated
+
     def has_object_permission(self, request, view, obj):
-        return (
-            request.method in ['GET', 'PATCH']
-            and (
-                obj == request.user
-                or request.user.role in ['admin']
-                or request.user.is_superuser
-            )
-            and request.method in ['PATCH']
-            or request.user.role in ['admin']
-            or request.user.is_superuser
-        )
+        return request.method in ['GET', 'PATCH'] and obj == request.user
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -43,11 +36,11 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     '''
 
     def has_permission(self, request, view):
-        return bool(
+        return (
             request.method in permissions.SAFE_METHODS
             or request.user
             and request.user.is_authenticated
-            and (request.user.role in ['admin'] or request.user.is_superuser)
+            and request.user.is_admin
         )
 
 
@@ -66,13 +59,8 @@ class ReviewAndComment(permissions.BasePermission):
         )
 
     def has_object_permission(self, request, view, obj):
-        return bool(
+        return (
             request.method in permissions.SAFE_METHODS
-            or request.user
-            and request.user.is_authenticated
-            and (
-                request.user.role in ['moderator', 'admin']
-                or request.user.is_superuser
-                or obj.author == request.user
-            )
+            or request.user.is_moderator
+            or obj.author == request.user
         )
