@@ -23,23 +23,36 @@ class UserSignupSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'Нельзя использовать имя пользователя "me"!'
             )
-        if User.objects.filter(username=value).exists():
-            raise serializers.ValidationError(
-                'Указанный username уже существует!'
-            )
         return value
 
-    def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+    def validate(self, data):
+        '''
+        Возможность получить токен для существующей комбинации username и email
+        и обеспечить уникальность username и email
+        '''
+        if (
+            User.objects.filter(email=data['email'])
+            .exclude(username=data['username'])
+            .exists()
+        ):
             raise serializers.ValidationError(
                 'Указанный email уже существует!'
             )
-        return value
+        if (
+            User.objects.filter(username=data['username'])
+            .exclude(email=data['email'])
+            .exists()
+        ):
+            raise serializers.ValidationError(
+                'Указанный username уже существует!'
+            )
+        return data
 
 
 class UserTokenSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150, write_only=True)
     confirmation_code = serializers.CharField(max_length=24, write_only=True)
+    token = serializers.CharField(max_length=150, read_only=True)
 
     class Meta:
         fields = ('username', 'confirmation_code')
