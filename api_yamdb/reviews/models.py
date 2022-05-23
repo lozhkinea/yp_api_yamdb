@@ -40,7 +40,7 @@ class Review(models.Model):
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='reviews'
     )
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
         validators=[
             MinValueValidator(1, 'Оценка должна быть не ниже 1'),
             MaxValueValidator(10, 'Оценка должна быть не выше 10'),
