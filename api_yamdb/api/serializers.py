@@ -23,37 +23,18 @@ class UserSignupSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'Нельзя использовать имя пользователя "me"!'
             )
-        # if User.objects.filter(username=value).exists():
-        #     raise serializers.ValidationError(
-        #         'Указанный username уже существует!'
-        #     )
-        return value
-
-    # def validate_email(self, value):
-    #     if User.objects.filter(email=value).exists():
-    #         raise serializers.ValidationError(
-    #             'Указанный email уже существует!'
-    #         )
-    #     return value
-
-    def validate(self, data):
-        if (
-            User.objects.filter(email=data['email'])
-            .exclude(username=data['username'])
-            .exists()
-        ):
-            raise serializers.ValidationError(
-                'Указанный email уже существует!'
-            )
-        if (
-            User.objects.filter(username=data['username'])
-            .exclude(email=data['email'])
-            .exists()
-        ):
+        if User.objects.filter(username=value).exists():
             raise serializers.ValidationError(
                 'Указанный username уже существует!'
             )
-        return data
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                'Указанный email уже существует!'
+            )
+        return value
 
 
 class UserTokenSerializer(serializers.Serializer):
