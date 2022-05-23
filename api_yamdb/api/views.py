@@ -111,41 +111,35 @@ class CreateListDeleteViewSet(
 
 
 class CategoryViewSet(CreateListDeleteViewSet):
+    queryset = Category.objects.order_by('name')
     serializer_class = serializers.CategorySerializer
     permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
-    def get_queryset(self):
-        return Category.objects.order_by('name')
-
 
 class GenreViewSet(CreateListDeleteViewSet):
+    queryset = Genre.objects.order_by('name')
     serializer_class = serializers.GenreSerializer
     permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
-    def get_queryset(self):
-        return Genre.objects.order_by('name')
-
 
 class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.order_by('id')
     serializer_class = serializers.TitleListSerializer
     permission_classes = (permissions.IsAdminOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = filter.TitleFilter
 
     def get_serializer_class(self):
-        if self.request.method == 'GET':
+        if self.action in ('list', 'retrieve'):
             return serializers.TitleListSerializer
         else:
             return serializers.TitleSerializer
-
-    def get_queryset(self):
-        return Title.objects.order_by('id')
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
