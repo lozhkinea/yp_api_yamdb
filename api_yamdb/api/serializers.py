@@ -4,7 +4,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Comment, Genre, Review, Title
 from users.models import User
 
@@ -19,11 +18,18 @@ class UserSignupSerializer(serializers.Serializer):
             'email',
         )
 
-    def validate(self, data):
-        if data['username'] == 'me':
+    def validate_username(self, value):
+        if value == 'me':
             raise serializers.ValidationError(
-                'Нельзя создать пользователя "me"!'
+                'Нельзя использовать имя пользователя "me"!'
             )
+        return value
+
+    def validate(self, data):
+        '''
+        Возможность получить токен для существующей комбинации username и email
+        и обеспечить уникальность username и email
+        '''
         if (
             User.objects.filter(email=data['email'])
             .exclude(username=data['username'])
@@ -42,39 +48,14 @@ class UserSignupSerializer(serializers.Serializer):
             )
         return data
 
-    def create(self, validated_data):
-        user, created = User.objects.get_or_create(
-            username=validated_data['username'],
-            email=validated_data['email'],
-        )
-        if created:
-            user.is_active = False
-            user.save()
-        code = default_token_generator.make_token(user)
-        subject = 'Код подтверждения регистрации на YaMDb'
-        message = f'Привет {user}, твой код подтверждения: {code}'
-        user.email_user(subject, message)
-        return user
-
 
 class UserTokenSerializer(serializers.Serializer):
     username = serializers.CharField(max_length=150, write_only=True)
-    token = serializers.SerializerMethodField(read_only=True)
     confirmation_code = serializers.CharField(max_length=24, write_only=True)
+    token = serializers.CharField(max_length=150, read_only=True)
 
     class Meta:
-        fields = ('username', 'confirmation_code', 'token')
-
-    def create(self, validated_data):
-        user = get_object_or_404(User, username=validated_data['username'])
-        if not user.is_active:
-            user.is_active = True
-            user.save()
-        return user
-
-    def get_token(self, obj):
-        refresh = RefreshToken.for_user(obj)
-        return str(refresh.access_token)
+        fields = ('username', 'confirmation_code')
 
     def validate(self, data):
         user = get_object_or_404(

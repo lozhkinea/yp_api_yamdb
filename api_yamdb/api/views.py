@@ -1,3 +1,4 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins
@@ -6,6 +7,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
 from reviews.models import Category, Genre, Review, Title
 from users.models import User
 
@@ -26,24 +28,59 @@ class UserSignupView(CreateAPIView):
             serializer.data, status=status.HTTP_200_OK, headers=headers
         )
 
+    def perform_create(self, serializer):
+        user, created = User.objects.get_or_create(
+            username=serializer.validated_data['username'],
+            email=serializer.validated_data['email'],
+        )
+        if created:
+            user.is_active = False
+            user.save()
+        code = default_token_generator.make_token(user)
+        subject = 'Код подтверждения регистрации на YaMDb'
+        message = f'Привет {user}, твой код подтверждения: {code}'
+        user.email_user(subject, message)
+
 
 class UserTokenView(CreateAPIView):
     model = User
     permission_classes = [rest_permissions.AllowAny]
     serializer_class = serializers.UserTokenSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(
+            User, username=serializer.validated_data['username']
+        )
+        refresh = RefreshToken.for_user(user)
+        serializer.validated_data['token'] = str(refresh.access_token)
+        if not user.is_active:
+            user.is_active = True
+            user.save()
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_200_OK, headers=headers
+        )
+
+    def get_token(self, obj):
+        refresh = RefreshToken.for_user(obj)
+        return str(refresh.access_token)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.SearchFilter,)
+    queryset = User.objects.order_by('id')
     search_fields = ('username',)
     serializer_class = serializers.UserSerializer
-    permission_classes = (permissions.IsAdminOrAuthenticated,)
+    permission_classes = (permissions.IsAdmin,)
     lookup_field = 'username'
 
-    def get_queryset(self):
-        return User.objects.order_by('id')
-
-    @action(methods=['get', 'patch'], detail=False)
+    @action(
+        methods=['get', 'patch'],
+        detail=False,
+        permission_classes=[permissions.IsSelf],
+    )
     def me(self, request):
         serializer = self.get_serializer(request.user)
         if request.GET:
